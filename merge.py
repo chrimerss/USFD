@@ -208,6 +208,34 @@ merged.loc[_slice, 'DESCRIPTION']= mping.description.tolist()
 merged.loc[_slice, 'SOURCE_DB']= 'mPing'
 merged.loc[_slice, 'SOURCE_ID']= mping.id
 
+#=============================Global FLood Monitor===================
 
-#export 
-merged.to_csv('USFD_v0.1.csv')
+gfm= pd.read_csv('GFM_events.csv', delimiter='\t')
+import geocoder
+import time
+import time
+#get country state name from lon, lat
+def decoder(feature):
+    start= time.time()
+    try:
+        geoID= int(feature.location_ID.split('-')[-1])
+        g= geocoder.geonames(geoID, method='details', key='allenlee')
+        lon= g.lng
+        lat= g.lat
+        country= g.country
+        state= g.state
+        time.sleep(3.35)
+        end=time.time()
+        print('time cost: %f'%(end-start))
+        with open('GFM_info.txt', 'a+') as f:
+            f.write('%.4f,%.4f,%s,%s\n'%(float(lon), float(lat), country, state))
+        return (float(lon), float(lat), country, state)
+    except:
+        return (np.nan, np.nan, np.nan, np.nan)
+geoinfos= gfm.apply(decoder, axis=1)
+gfm['lon']= [info[0] for info in geoinfos]
+gfm['lat']= [info[1] for info in geoinfos]
+gfm['country']= [info[2] for info in geoinfos]
+gfm['state']= [info[3] for info in geoinfos]
+gfm.to_csv('gfm_v0.1.csv')
+    
